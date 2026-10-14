@@ -1,0 +1,31 @@
+# Publishes @plexuslabs/simmail to npm when a tag js-vX.Y.Z is pushed.
+# npm trusted publishing (OIDC): no npm token is stored anywhere; the
+# package's npm settings name this repository and workflow file instead.
+name: release-js
+on:
+  push:
+    tags: ["js-v*"]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing and provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    defaults:
+      run:
+        working-directory: js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      - name: Trusted publishing needs npm 11.5.1 or newer
+        run: npm install -g npm@^11.5.1
+      - name: The tag matches package.json
+        run: test "js-v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm test
+      - run: npm publish --access public --provenance
