@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.1.1)
+## 0.1.1 (2026-10-14)
 
 Covers the whole customer API, and adds an object layer on top of the plain calls.
 

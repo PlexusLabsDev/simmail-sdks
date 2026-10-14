@@ -4,7 +4,7 @@ mailboxes, people, cases, the clock, the World, faults, webhooks and more.
 Standard library only.
 
 Answers come back as typed objects (``Message``, ``Mailbox``, ``Persona``,
-``Case``, ``Job``, ``Account``, ``Event``) that still read like the plain
+``Case``, ``Job``, ``Account``, ``SimEvent``) that still read like the plain
 answer (``msg["codes"]``). Objects you send, such as a persona, a case, the
 World or fault rules, use the API's own field names, as the docs show them.
 """
@@ -26,13 +26,13 @@ from .enums import *  # noqa: F401,F403
 from .enums import __all__ as _enum_names
 from .errors import (AuthError, ConflictError, ForbiddenError, IdempotencyError, NotFoundError, PlanLimitError, RateLimitedError,
                      SimmailError, UnexpectedEmailError, ValidationError, WaitTimeoutError, error_for)
-from .models import Account, Answer, Case, Conversation, Event, Job, Mailbox, Message, Model, Persona, TagGroup, TestAddress, WaitMany
+from .models import Account, Answer, Case, Conversation, SimEvent, Job, Mailbox, Message, Model, Persona, TagGroup, TestAddress, WaitMany
 
 __all__ = ["Simmail", "SimmailError", "ValidationError", "AuthError", "PlanLimitError", "ForbiddenError", "NotFoundError",
            "WaitTimeoutError", "ConflictError", "UnexpectedEmailError", "IdempotencyError", "RateLimitedError", "error_for",
-           "Model", "Answer", "Message", "Mailbox", "Persona", "Case", "Job", "Account", "Event", "Conversation", "TestAddress",
+           "Model", "Answer", "Message", "Mailbox", "Persona", "Case", "Job", "Account", "SimEvent", "Conversation", "TestAddress",
            "TagGroup", "WaitMany", *_enum_names]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def _duration(v: Any) -> Optional[str]:
@@ -316,13 +316,13 @@ class Simmail:
                                                                                      "fast": fast, "timeout": _duration(timeout), **more}))
 
     def wait_for_event(self, type: Any, *, persona: Optional[str] = None, message_id: Optional[str] = None,  # noqa: A002
-                       after: Optional[int] = None, fast: Optional[bool] = None, timeout: "float | str" = 30) -> Event:
+                       after: Optional[int] = None, fast: Optional[bool] = None, timeout: "float | str" = 30) -> SimEvent:
         """The next event of a type: an EventType or EventAlias such as "replied" (or a list, or a prefix such as
         "persona.*"), optionally for one persona (id or address) or message, after an event id. fast has the
-        persona act on what is due now. Answers the Event, with waited_ms."""
+        persona act on what is due now. Answers the SimEvent, with waited_ms."""
         r = self.request("GET", "/api/wait/event", query={"type": _csv(type), "persona": persona, "message_id": message_id,
                                                           "after": after, "fast": fast, "timeout": _duration(timeout)})
-        ev = Event.from_api(self, r["event"])
+        ev = SimEvent.from_api(self, r["event"])
         ev.waited_ms = r.get("waited_ms")
         return ev
 
@@ -639,12 +639,12 @@ class Simmail:
 
     # ---- events (https://www.simmail.dev/docs/api/events/) ----
 
-    def log(self, since: Optional[int] = None, limit: Optional[int] = None) -> List[Event]:
+    def log(self, since: Optional[int] = None, limit: Optional[int] = None) -> List[SimEvent]:
         """Events after a point, oldest first. Page with the last id as the next since."""
         r = self.request("GET", "/api/log", query={"since": since, "limit": limit})
-        return [Event.from_api(self, e) for e in r] if isinstance(r, list) else r
+        return [SimEvent.from_api(self, e) for e in r] if isinstance(r, list) else r
 
-    def events(self, since: Optional[int] = None, timeout: Optional[float] = None) -> Iterator[Event]:
+    def events(self, since: Optional[int] = None, timeout: Optional[float] = None) -> Iterator[SimEvent]:
         """The live event stream, as a generator of events. since replays up to 500 earlier events first.
         timeout (seconds) ends it when nothing arrives for that long; break out of the loop to stop."""
         with self._open("GET", "/api/events", query={"since": since}, accept="text/event-stream", timeout=timeout) as r:
@@ -654,7 +654,7 @@ class Simmail:
                 if line.startswith("data:"):
                     data.append(line[5:].lstrip())
                 elif line == "" and data:
-                    yield Event.from_api(self, json.loads("\n".join(data)))
+                    yield SimEvent.from_api(self, json.loads("\n".join(data)))
                     data = []
 
     # ---- how the universe behaves (https://www.simmail.dev/docs/api/behaviour/) ----

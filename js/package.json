@@ -1,6 +1,6 @@
 {
   "name": "@plexuslabs/simmail",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The official simmail client: wait for the email your app sends, pull out codes and links, get replies from simulated people, and drive the whole simulated email world.",
   "type": "module",
   "main": "./index.js",

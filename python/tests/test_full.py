@@ -8,7 +8,7 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
 
-from simmail import (Account, Case, ConflictError, Event, FaultScenario, Folder, ForbiddenError, Job, JobKind, JobState, Mailbox,
+from simmail import (Account, Case, ConflictError, SimEvent, FaultScenario, Folder, ForbiddenError, Job, JobKind, JobState, Mailbox,
                      MailboxStatus, Message, NotFoundError, Persona, PlanLimitError, RateLimitedError, Simmail, SimmailError,
                      Temperament, ValidationError, WaitTimeoutError, AuthError, Conversation, EventAlias, EventType, ErrorCode,
                      IdempotencyError, TagGroup, TestAddress, UnexpectedEmailError, WaitMany, describe)
@@ -345,7 +345,7 @@ class FullTest(_Server):
         job.reschedule(in_="1h")
         self.assertEqual(last()["body"], {"in": "1h"})
         self.assertIsInstance(m.accounts()[0], Account)
-        self.assertIsInstance(m.log()[0], Event)
+        self.assertIsInstance(m.log()[0], SimEvent)
 
     def test_namespaces_are_callable(self):
         m = self.mail()

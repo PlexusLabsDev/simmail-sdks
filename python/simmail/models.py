@@ -17,7 +17,7 @@ from .enums import EventType, JobKind, JobState, Knows, Life, PersonaSource, Sto
 if TYPE_CHECKING:  # pragma: no cover
     from . import Simmail
 
-__all__ = ["Answer", "Model", "Message", "Mailbox", "Persona", "Case", "Job", "Account", "Event", "Conversation", "WaitMany",
+__all__ = ["Answer", "Model", "Message", "Mailbox", "Persona", "Case", "Job", "Account", "SimEvent", "Conversation", "WaitMany",
            "TestAddress", "TagGroup"]
 
 
@@ -314,7 +314,7 @@ class Persona(Model):
         """Runs their pending jobs now: {ran, count, remaining}."""
         return self.client.run_due(persona=self.id, kind=kind, before=before, limit=limit)
 
-    def wait_for(self, type: Any, **opts: Any) -> "Event":  # noqa: A002
+    def wait_for(self, type: Any, **opts: Any) -> "SimEvent":  # noqa: A002
         """Waits until they do something: an EventType or EventAlias such as "replied", "declined", "clicked" or
         "bounced" (or a list). opts: message_id, after, fast, timeout."""
         return self.client.wait_for_event(type, persona=self.id, **opts)
@@ -424,7 +424,7 @@ class Account(Model):
 
 
 @dataclass(eq=False)
-class Event(Model):
+class SimEvent(Model):
     """Something that happened in the universe."""
     id: int = 0
     at: Optional[str] = None

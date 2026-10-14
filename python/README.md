@@ -88,7 +88,7 @@ for m in mail.mailbox("dana@harbor.test").messages(folder=Folder.JUNK):
 | `Job` | `kind`, `state`, `due`; `run()`, `skip()`, `bounce()`, `reschedule()` |
 | `TestAddress` | a fresh address (a `Mailbox`); `wait_for_email()`, `expect_no_email()`, `list()`, `cleanup()` |
 | `Conversation` | `messages`, `latest`; `wait_until_quiet()`, `reply()` |
-| `Event` | `kind` (an `EventType`), `data`, `persona_id`, `message_id`; `persona()` |
+| `SimEvent` | `kind` (an `EventType`), `data`, `persona_id`, `message_id`; `persona()` |
 | `Account` | a login; `update()`, `test()`, `delete()` |
 
 The API's `from` is `sender` (a keyword in Python). Every object still reads like the plain answer
