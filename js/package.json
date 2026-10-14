@@ -22,9 +22,9 @@
   "homepage": "https://www.simmail.dev/docs/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/plexuslabs/simmail-sdks.git",
+    "url": "git+https://github.com/PlexusLabsDev/simmail-sdks.git",
     "directory": "js"
   },
-  "bugs": { "url": "https://github.com/plexuslabs/simmail-sdks/issues" },
+  "bugs": { "url": "https://github.com/PlexusLabsDev/simmail-sdks/issues" },
   "publishConfig": { "access": "public", "provenance": true }
 }

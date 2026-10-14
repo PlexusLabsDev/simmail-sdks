@@ -21,9 +21,9 @@ dependencies = []
 [project.urls]
 Homepage = "https://www.simmail.dev"
 Documentation = "https://www.simmail.dev/docs/"
-Source = "https://github.com/plexuslabs/simmail-sdks"
-Issues = "https://github.com/plexuslabs/simmail-sdks/issues"
-Changelog = "https://github.com/plexuslabs/simmail-sdks/blob/main/python/CHANGELOG.md"
+Source = "https://github.com/PlexusLabsDev/simmail-sdks"
+Issues = "https://github.com/PlexusLabsDev/simmail-sdks/issues"
+Changelog = "https://github.com/PlexusLabsDev/simmail-sdks/blob/main/python/CHANGELOG.md"
 
 [build-system]
 requires = ["hatchling>=1.27"]
