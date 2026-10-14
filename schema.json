@@ -1,0 +1,1462 @@
+{
+  "areas": {
+    "ai": {
+      "endpoints": [
+        "GET /api/ai",
+        "PUT /api/ai"
+      ],
+      "description": "The universe's AI.",
+      "fields": {
+        "mode": {
+          "type": "enum",
+          "values": [
+            {
+              "value": "on",
+              "label": "On",
+              "description": "People write with the AI"
+            },
+            {
+              "value": "off",
+              "label": "Off",
+              "description": "Templates and rules: instant, repeatable, free"
+            }
+          ],
+          "default": "on"
+        }
+      }
+    },
+    "clock": {
+      "endpoints": [
+        "GET /api/clock",
+        "POST /api/clock/speed",
+        "POST /api/clock/advance",
+        "POST /api/clock/freeze",
+        "POST /api/clock/live"
+      ],
+      "description": "Simulated time.",
+      "fields": {
+        "advance.duration": {
+          "type": "duration",
+          "description": "e.g. 3h, 2d"
+        },
+        "speed.factor": {
+          "type": "number",
+          "description": "0 = frozen, 1 = real time, 60 = a minute a second",
+          "min": 0
+        }
+      }
+    },
+    "faults": {
+      "endpoints": [
+        "GET /api/faults",
+        "PUT /api/faults",
+        "GET /api/faults/scenarios",
+        "POST /api/faults/scenarios/{id}"
+      ],
+      "description": "Failures injected into SMTP.",
+      "fields": {
+        "code": {
+          "type": "enum",
+          "description": "SMTP reply code (0 = delay only)",
+          "values": [
+            {
+              "value": 421
+            },
+            {
+              "value": 450
+            },
+            {
+              "value": 451
+            },
+            {
+              "value": 452
+            },
+            {
+              "value": 550
+            },
+            {
+              "value": 552
+            },
+            {
+              "value": 554
+            }
+          ]
+        },
+        "delay_ms": {
+          "type": "integer",
+          "description": "Added before answering",
+          "min": 0
+        },
+        "kind": {
+          "type": "enum",
+          "values": [
+            {
+              "value": "error",
+              "label": "Error",
+              "description": "Refuse or delay with a code"
+            },
+            {
+              "value": "greylist",
+              "label": "Greylist",
+              "description": "Defer the first attempt, accept a retry",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "rate",
+              "label": "Rate limit",
+              "description": "Defer above a rate",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "drop",
+              "label": "Drop",
+              "description": "Close the connection without answering",
+              "feature": "chaos_profiles"
+            }
+          ],
+          "default": "error"
+        },
+        "match": {
+          "type": "string",
+          "description": "An address or @domain",
+          "unset": "all recipients"
+        },
+        "per_minute": {
+          "type": "integer",
+          "description": "Rate limit: messages a minute",
+          "min": 1,
+          "feature": "chaos_profiles"
+        },
+        "rate": {
+          "type": "number",
+          "description": "Chance the rule fires (error, drop)",
+          "min": 0,
+          "max": 1
+        },
+        "retry_after": {
+          "type": "integer",
+          "description": "Greylisting: seconds before a retry is accepted",
+          "min": 0,
+          "feature": "chaos_profiles"
+        },
+        "scenario": {
+          "type": "enum",
+          "description": "Provider scenarios (POST /api/faults/scenarios/{id})",
+          "values": [
+            {
+              "value": "gmail-unauthenticated",
+              "label": "Gmail: Rejects unauthenticated mail",
+              "description": "Gmail refuses mail that passes neither SPF nor DKIM.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "gmail-rate",
+              "label": "Gmail: Rate-limits your IP",
+              "description": "Too much mail too fast: Gmail defers with 421 4.7.28.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "gmail-no-user",
+              "label": "Gmail: Mailbox does not exist",
+              "description": "A Gmail address that was never created or was deleted.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "gmail-over-quota",
+              "label": "Gmail: Recipient over quota",
+              "description": "The recipient's storage is full; a temporary failure.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "microsoft-busy",
+              "label": "Microsoft (Outlook, Hotmail, 365): Server busy",
+              "description": "Outlook.com and Exchange Online defer under load: retry later.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "microsoft-blocked",
+              "label": "Microsoft (Outlook, Hotmail, 365): Sending IP blocked",
+              "description": "Your IP is on a blocklist Microsoft uses.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "microsoft-access-denied",
+              "label": "Microsoft (Outlook, Hotmail, 365): Recipient rejects you",
+              "description": "The recipient's organisation does not accept your mail.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "yahoo-deferred",
+              "label": "Yahoo / AOL: Deferred for volume or complaints",
+              "description": "Yahoo's TSS04: too much volume or too many complaints; slow down.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "yahoo-policy",
+              "label": "Yahoo / AOL: Not accepted for policy reasons",
+              "description": "Content or reputation fails Yahoo's policy.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "greylisting",
+              "label": "Any server: Greylisting",
+              "description": "First attempt for each sender and recipient is deferred; a retry a little later succeeds. Tests that the app retries.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "rate-limit",
+              "label": "Any server: Rate limit",
+              "description": "More than 20 messages a minute are deferred with 421.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "drop",
+              "label": "Any server: Dropped connection",
+              "description": "The server hangs up in the middle of sending the message.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "slow",
+              "label": "Any server: Slow server",
+              "description": "Every message takes 20 seconds to be accepted: tests timeouts.",
+              "feature": "chaos_profiles"
+            },
+            {
+              "value": "mailbox-full",
+              "label": "Any server: Mailbox full",
+              "description": "Some recipients' mailboxes are full (permanent).",
+              "feature": "chaos_profiles"
+            }
+          ],
+          "feature": "chaos_profiles"
+        },
+        "stage": {
+          "type": "enum",
+          "description": "When in the SMTP conversation",
+          "values": [
+            {
+              "value": "mail",
+              "label": "Mail",
+              "description": "At MAIL FROM"
+            },
+            {
+              "value": "rcpt",
+              "label": "Rcpt",
+              "description": "At RCPT TO"
+            },
+            {
+              "value": "data",
+              "label": "Data",
+              "description": "After DATA"
+            }
+          ]
+        },
+        "window": {
+          "type": "object",
+          "description": "{days, from, to, tz}: only at these times",
+          "feature": "chaos_profiles"
+        }
+      }
+    },
+    "jobs": {
+      "endpoints": [
+        "GET /api/jobs",
+        "POST /api/jobs/run-due",
+        "POST /api/jobs/{id}/run-now"
+      ],
+      "description": "What people (and the World) have scheduled.",
+      "fields": {
+        "kind": {
+          "type": "enum",
+          "values": [
+            {
+              "value": "reply",
+              "description": "A reply to an email they received"
+            },
+            {
+              "value": "followup",
+              "description": "A follow-up when you have not answered"
+            },
+            {
+              "value": "correction",
+              "description": "A correction to something they said"
+            },
+            {
+              "value": "ooo",
+              "description": "An out-of-office answer"
+            },
+            {
+              "value": "bounce",
+              "description": "A bounce notice instead of a reply"
+            },
+            {
+              "value": "initiate",
+              "description": "An email they start (a case's first contact)"
+            },
+            {
+              "value": "deliver",
+              "description": "Delivery of mail that was delayed"
+            },
+            {
+              "value": "nudge",
+              "description": "A reminder about something you promised"
+            },
+            {
+              "value": "dsn",
+              "description": "A delivery status notice for a dead address"
+            },
+            {
+              "value": "world",
+              "description": "Mail that arrives on its own from the World"
+            },
+            {
+              "value": "visit",
+              "description": "A visit to a link or a website"
+            }
+          ]
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "done",
+              "label": "Done"
+            },
+            {
+              "value": "skipped",
+              "label": "Skipped"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        }
+      }
+    },
+    "junk": {
+      "endpoints": [
+        "GET /api/junk",
+        "PUT /api/junk"
+      ],
+      "description": "When people's providers file mail as spam.",
+      "feature": "junk_consequences",
+      "fields": {
+        "count_network": {
+          "type": "boolean",
+          "description": "Count checks of the connection itself"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "ignore": {
+          "type": "string[]",
+          "description": "Spam rules that do not count (shell patterns)"
+        },
+        "lenient": {
+          "type": "number",
+          "default": 9
+        },
+        "normal": {
+          "type": "number",
+          "default": 6
+        },
+        "strict": {
+          "type": "number",
+          "description": "Spam score at which strict providers junk mail",
+          "default": 5
+        },
+        "strict_domains": {
+          "type": "string[]",
+          "description": "Providers counted as strict"
+        }
+      }
+    },
+    "links": {
+      "endpoints": [
+        "GET /api/links",
+        "PUT /api/links"
+      ],
+      "description": "How people open links.",
+      "feature": "living_world",
+      "fields": {
+        "allow": {
+          "type": "string[]",
+          "description": "Only these hosts (exact or *.example.com)"
+        },
+        "allow_private": {
+          "type": "boolean",
+          "description": "May open localhost and private addresses"
+        },
+        "deny": {
+          "type": "string[]",
+          "description": "Never these hosts"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "local_links": {
+          "type": "enum",
+          "description": "Links to your own machine or network",
+          "values": [
+            {
+              "value": "ignore",
+              "label": "Ignore",
+              "description": "Treated as testing links"
+            },
+            {
+              "value": "broken",
+              "label": "Broken",
+              "description": "Clicked and found broken, as in production"
+            }
+          ],
+          "default": "ignore"
+        },
+        "max_links": {
+          "type": "integer",
+          "description": "Per message",
+          "default": 3,
+          "min": 1,
+          "max": 10
+        },
+        "missing_site": {
+          "type": "enum",
+          "description": "When the sender's website does not exist",
+          "values": [
+            {
+              "value": "imagine",
+              "label": "Imagine",
+              "description": "The AI imagines what they find"
+            },
+            {
+              "value": "notice",
+              "label": "Notice",
+              "description": "They see there is no site"
+            }
+          ],
+          "default": "imagine"
+        },
+        "sender_check": {
+          "type": "number",
+          "description": "How often a person looks up a sender they don't know",
+          "min": 0,
+          "max": 1
+        },
+        "unsubscribe": {
+          "type": "boolean",
+          "description": "May people follow unsubscribe links"
+        }
+      }
+    },
+    "messages": {
+      "endpoints": [
+        "PATCH /api/mailboxes/{address}/messages/{folder}/{uid}"
+      ],
+      "description": "Acting on a message.",
+      "fields": {
+        "move_to": {
+          "type": "string",
+          "description": "A folder: INBOX, Archive, Junk, Trash, or a new one"
+        },
+        "seen": {
+          "type": "boolean"
+        }
+      }
+    },
+    "pace": {
+      "endpoints": [
+        "GET /api/pace",
+        "PUT /api/pace"
+      ],
+      "description": "How fast people answer.",
+      "fields": {
+        "factor": {
+          "type": "number",
+          "description": "1 = as configured, 0.1 = ten times faster",
+          "default": 1,
+          "min": 0
+        },
+        "ignore_hours": {
+          "type": "boolean",
+          "description": "Reply at any hour, any day"
+        },
+        "tz": {
+          "type": "string",
+          "description": "IANA time zone for people without one"
+        }
+      }
+    },
+    "personas": {
+      "endpoints": [
+        "POST /api/personas",
+        "PATCH /api/personas/{id}"
+      ],
+      "description": "Simulated people: who they are and how they behave.",
+      "fields": {
+        "behaviors.bounce": {
+          "type": "number",
+          "description": "Chance their address bounces instead of replying",
+          "min": 0,
+          "max": 1
+        },
+        "behaviors.cc_someone": {
+          "type": "number",
+          "description": "Chance they copy someone in",
+          "min": 0,
+          "max": 1
+        },
+        "behaviors.double_reply": {
+          "type": "number",
+          "description": "Chance they send a second message soon after the first",
+          "min": 0,
+          "max": 1
+        },
+        "behaviors.keep_promises": {
+          "type": "number",
+          "description": "How reliably they do what they said they would",
+          "min": 0,
+          "max": 1,
+          "feature": "living_world",
+          "unset": "from their temperament"
+        },
+        "better_model": {
+          "type": "boolean",
+          "description": "Writes with the better AI model, using the plan's premium actions",
+          "default": false
+        },
+        "knows": {
+          "type": "enum",
+          "description": "How much of their case they know",
+          "values": [
+            {
+              "value": "all",
+              "label": "All",
+              "description": "Everything about their case"
+            },
+            {
+              "value": "some",
+              "label": "Some",
+              "description": "Some of it"
+            },
+            {
+              "value": "little",
+              "label": "Little",
+              "description": "Very little"
+            }
+          ],
+          "default": "some"
+        },
+        "life": {
+          "type": "enum",
+          "description": "Whose hours their replies keep",
+          "values": [
+            {
+              "value": "work",
+              "label": "Work",
+              "description": "Keeps working hours"
+            },
+            {
+              "value": "personal",
+              "label": "Personal",
+              "description": "Answers on their own time"
+            },
+            {
+              "value": "both",
+              "label": "Both",
+              "description": "Personal-looking mail on their own time, the rest in working hours"
+            }
+          ],
+          "unset": "from their address (free webmail: personal)"
+        },
+        "paused": {
+          "type": "boolean",
+          "description": "AI off for them: they answer nothing",
+          "default": false
+        },
+        "relations.stance": {
+          "type": "enum",
+          "description": "How they feel about a sender (read only: it follows the conversation)",
+          "values": [
+            {
+              "value": "warm",
+              "label": "Warm"
+            },
+            {
+              "value": "neutral",
+              "label": "Neutral"
+            },
+            {
+              "value": "wary",
+              "label": "Wary"
+            },
+            {
+              "value": "annoyed",
+              "label": "Annoyed"
+            },
+            {
+              "value": "done",
+              "label": "Done"
+            }
+          ]
+        },
+        "style.access": {
+          "type": "enum",
+          "description": "How they take in mail",
+          "values": [
+            {
+              "value": "screen_reader",
+              "label": "Screen reader",
+              "description": "Hears the email through a screen reader"
+            },
+            {
+              "value": "low_vision",
+              "label": "Low vision",
+              "description": "Zooms in; small or low-contrast text is hard to read"
+            }
+          ],
+          "feature": "inspect_full",
+          "unset": "reads it as it is"
+        },
+        "style.client": {
+          "type": "enum",
+          "description": "Their mail program: how their mail looks",
+          "values": [
+            {
+              "value": "gmail",
+              "label": "Gmail (HTML)"
+            },
+            {
+              "value": "outlook",
+              "label": "Outlook (HTML)"
+            },
+            {
+              "value": "apple",
+              "label": "Apple Mail (HTML)"
+            },
+            {
+              "value": "iphone",
+              "label": "iPhone Mail (mobile)"
+            },
+            {
+              "value": "android",
+              "label": "Gmail on Android (mobile)"
+            },
+            {
+              "value": "plain",
+              "label": "plain-text client"
+            }
+          ],
+          "unset": "drawn at random, weighted as people use them"
+        },
+        "style.filter": {
+          "type": "enum",
+          "description": "Their provider's spam filter",
+          "values": [
+            {
+              "value": "strict",
+              "label": "Strict"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "lenient",
+              "label": "Lenient"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ],
+          "feature": "junk_consequences",
+          "unset": "from their domain (big webmail providers are strict)"
+        },
+        "style.formality": {
+          "type": "enum",
+          "description": "How formally they write",
+          "values": [
+            {
+              "value": "casual",
+              "label": "Casual"
+            },
+            {
+              "value": "neutral",
+              "label": "Neutral"
+            },
+            {
+              "value": "formal",
+              "label": "Formal"
+            }
+          ],
+          "default": "neutral"
+        },
+        "style.length": {
+          "type": "enum",
+          "description": "How long they write",
+          "values": [
+            {
+              "value": "short",
+              "label": "Short"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "long",
+              "label": "Long"
+            }
+          ],
+          "default": "medium"
+        },
+        "style.links": {
+          "type": "enum",
+          "description": "Whether they click links in mail",
+          "values": [
+            {
+              "value": "usual",
+              "label": "Usual",
+              "description": "Clicks what seems relevant"
+            },
+            {
+              "value": "curious",
+              "label": "Curious",
+              "description": "Clicks readily"
+            },
+            {
+              "value": "wary",
+              "label": "Wary",
+              "description": "Rarely clicks"
+            },
+            {
+              "value": "never",
+              "label": "Never",
+              "description": "Never clicks"
+            }
+          ],
+          "default": "usual",
+          "feature": "living_world"
+        },
+        "style.signature": {
+          "type": "string",
+          "unset": "their name"
+        },
+        "style.typos": {
+          "type": "number",
+          "description": "How often they make typos",
+          "min": 0,
+          "max": 1
+        },
+        "temperament": {
+          "type": "enum",
+          "description": "How they behave as a correspondent",
+          "values": [
+            {
+              "value": "responsive",
+              "label": "Responsive",
+              "description": "Answers promptly and fully. Friendly, organised, answers every question asked. (replies 95% of the time, typically after 12m0s)"
+            },
+            {
+              "value": "busy",
+              "label": "Busy",
+              "description": "Answers late and briefly, often only part of the question. Short sentences, no pleasantries, sometimes from a phone. (replies 85% of the time, typically after 1h15m0s)"
+            },
+            {
+              "value": "procedural",
+              "label": "Procedural",
+              "description": "Polite and correct, and wants the right paperwork, forms or reference numbers before doing anything. (replies 90% of the time, typically after 45m0s)"
+            },
+            {
+              "value": "skeptical",
+              "label": "Skeptical",
+              "description": "Questions the premise, wants proof, and does not take claims at face value. (replies 80% of the time, typically after 1h0m0s)"
+            },
+            {
+              "value": "flaky",
+              "label": "Flaky",
+              "description": "Agrees readily, then goes quiet or forgets; needs reminding; sometimes contradicts an earlier message. (replies 60% of the time, typically after 3h0m0s)"
+            },
+            {
+              "value": "difficult",
+              "label": "Difficult",
+              "description": "Pushes back, negotiates hard, takes offence easily, and escalates. (replies 75% of the time, typically after 1h30m0s)"
+            },
+            {
+              "value": "ghost",
+              "label": "Ghost",
+              "description": "Rarely replies at all; when they do, it is one line, days later. (replies 15% of the time, typically after 24h0m0s)"
+            }
+          ],
+          "unset": "drawn at random, weighted as in life"
+        },
+        "timing.delay.median": {
+          "type": "duration",
+          "description": "Typical delay before replying, e.g. 45m, 3h",
+          "unset": "from their temperament"
+        },
+        "timing.delay.spread": {
+          "type": "number",
+          "description": "Log-normal spread of the delay (1 = always the median)",
+          "min": 1,
+          "unset": "from their temperament"
+        },
+        "timing.hours.days": {
+          "type": "string",
+          "description": "Working days: \"mon-fri\", \"mon,wed,fri\" or \"all\""
+        },
+        "timing.hours.from": {
+          "type": "string",
+          "description": "Start of the working day, \"08:30\""
+        },
+        "timing.hours.to": {
+          "type": "string",
+          "description": "End of the working day, \"17:00\""
+        },
+        "timing.hours.tz": {
+          "type": "string",
+          "description": "IANA time zone, e.g. America/Chicago"
+        },
+        "timing.reply_rate": {
+          "type": "number",
+          "description": "Share of emails they answer",
+          "min": 0,
+          "max": 1,
+          "unset": "from their temperament"
+        }
+      }
+    },
+    "recipients": {
+      "endpoints": [
+        "GET /api/recipients",
+        "PUT /api/recipients",
+        "PUT /api/mailboxes/{address}/status"
+      ],
+      "description": "What happens to mail for addresses simmail has not seen before.",
+      "fields": {
+        "default.bad_kinds": {
+          "type": "enum[]",
+          "values": [
+            {
+              "value": "blocked",
+              "label": "Blocked",
+              "description": "Blocked as spam (554 5.7.1)"
+            },
+            {
+              "value": "disabled",
+              "label": "Disabled",
+              "description": "Mailbox disabled (550 5.2.1)"
+            },
+            {
+              "value": "domain",
+              "label": "Domain",
+              "description": "No such domain (550 5.1.2)"
+            },
+            {
+              "value": "full",
+              "label": "Full",
+              "description": "Mailbox full (552 5.2.2)"
+            },
+            {
+              "value": "unknown",
+              "label": "Unknown",
+              "description": "No such user (550 5.1.1)"
+            }
+          ],
+          "default": [
+            "unknown",
+            "domain",
+            "full",
+            "blocked"
+          ]
+        },
+        "default.bad_rate": {
+          "type": "number",
+          "description": "Share of new addresses that are bad",
+          "min": 0,
+          "max": 1
+        },
+        "default.create": {
+          "type": "boolean",
+          "description": "Make a mailbox and deliver (else bounce as unknown)"
+        },
+        "default.fail_at": {
+          "type": "enum",
+          "description": "When a bad address fails",
+          "values": [
+            {
+              "value": "dsn",
+              "label": "Dsn",
+              "description": "Accept, then a bounce notice arrives later"
+            },
+            {
+              "value": "rcpt",
+              "label": "Rcpt",
+              "description": "Refused at once during SMTP"
+            }
+          ],
+          "default": "dsn"
+        },
+        "default.silent": {
+          "type": "boolean",
+          "description": "Accept and discard"
+        },
+        "default.stranger": {
+          "type": "enum",
+          "description": "Who is behind a new address",
+          "values": [
+            {
+              "value": "off",
+              "label": "Off",
+              "description": "Nobody is behind a new address"
+            },
+            {
+              "value": "basic",
+              "label": "Basic",
+              "description": "A person is made from the address"
+            },
+            {
+              "value": "ai",
+              "label": "Ai",
+              "description": "The AI invents who they are from the first email"
+            }
+          ],
+          "default": "off"
+        },
+        "domains": {
+          "type": "object",
+          "description": "The same rule per domain, e.g. {\"gmail.com\": {…}}"
+        },
+        "status": {
+          "type": "enum",
+          "description": "A mailbox's status (PUT /api/mailboxes/{address}/status)",
+          "values": [
+            {
+              "value": "ok",
+              "label": "Ok"
+            },
+            {
+              "value": "blocked",
+              "label": "Blocked"
+            },
+            {
+              "value": "disabled",
+              "label": "Disabled"
+            },
+            {
+              "value": "domain",
+              "label": "Domain"
+            },
+            {
+              "value": "full",
+              "label": "Full"
+            },
+            {
+              "value": "unknown",
+              "label": "Unknown"
+            }
+          ]
+        }
+      }
+    },
+    "retention": {
+      "endpoints": [
+        "GET /api/retention",
+        "PUT /api/retention"
+      ],
+      "description": "How long mail and activity are kept.",
+      "fields": {
+        "event_days": {
+          "type": "integer",
+          "description": "0 = forever (within the plan)",
+          "min": 0
+        },
+        "mail_days": {
+          "type": "integer",
+          "description": "0 = forever (within the plan)",
+          "min": 0
+        }
+      }
+    },
+    "waits": {
+      "endpoints": [
+        "GET /api/wait",
+        "GET /api/wait/none",
+        "GET /api/wait/reply",
+        "GET /api/wait/event",
+        "GET /api/wait/thread"
+      ],
+      "description": "Waits for tests and agents.",
+      "fields": {
+        "count": {
+          "type": "integer",
+          "default": 1,
+          "min": 1,
+          "max": 100
+        },
+        "event.type": {
+          "type": "enum[]",
+          "description": "GET /api/wait/event?type= (also aliases: bounced→persona.bounced, clicked→link.opened, declined→persona.ignored, delivered→mail.delivered, ignored→persona.ignored, junked→persona.junked, opened_link→link.opened, promised→persona.promised, received→persona.received, replied→persona.sent, rescued→persona.rescued, sent→persona.sent; and prefixes such as persona.*)",
+          "values": [
+            {
+              "value": "mail.delivered",
+              "description": "Mail your app sent was delivered to its recipients"
+            },
+            {
+              "value": "mail.retried",
+              "description": "A message was handed to people again (POST /api/retry)"
+            },
+            {
+              "value": "mail.deleted",
+              "description": "Mail was deleted (DELETE /api/messages)"
+            },
+            {
+              "value": "persona.received",
+              "description": "A person received an email and read it"
+            },
+            {
+              "value": "persona.sent",
+              "description": "A person sent an email: a reply, a follow-up or a forward"
+            },
+            {
+              "value": "persona.ignored",
+              "description": "A person decided not to answer (or their AI is off)"
+            },
+            {
+              "value": "persona.batched",
+              "description": "A person will answer several emails together"
+            },
+            {
+              "value": "persona.junked",
+              "description": "A person's provider filed your email as spam; they never saw it",
+              "feature": "junk_consequences"
+            },
+            {
+              "value": "persona.rescued",
+              "description": "An email was moved from Junk to a person's inbox"
+            },
+            {
+              "value": "persona.bounced",
+              "description": "An address bounced (dead, full, blocked)"
+            },
+            {
+              "value": "persona.promised",
+              "description": "A person promised to do something",
+              "feature": "living_world"
+            },
+            {
+              "value": "persona.waiting",
+              "description": "A person is waiting on something you promised",
+              "feature": "living_world"
+            },
+            {
+              "value": "persona.created",
+              "description": "A person was added"
+            },
+            {
+              "value": "persona.updated",
+              "description": "A person was changed"
+            },
+            {
+              "value": "persona.memory",
+              "description": "Something was added to a person's memory"
+            },
+            {
+              "value": "link.opened",
+              "description": "A person clicked a link in an email",
+              "feature": "living_world"
+            },
+            {
+              "value": "link.skipped",
+              "description": "A person chose not to open a link",
+              "feature": "living_world"
+            },
+            {
+              "value": "link.failed",
+              "description": "A person clicked a link and it failed",
+              "feature": "living_world"
+            },
+            {
+              "value": "link.sender",
+              "description": "A person looked up a sender's website",
+              "feature": "living_world"
+            },
+            {
+              "value": "inspect.scored",
+              "description": "An email your app sent was inspected and scored"
+            },
+            {
+              "value": "inspect.links",
+              "description": "The links of an email your app sent were checked"
+            },
+            {
+              "value": "world.mail",
+              "description": "Mail arrived on its own from the World"
+            },
+            {
+              "value": "world.updated",
+              "description": "The World was changed"
+            },
+            {
+              "value": "job.scheduled",
+              "description": "Something was scheduled: a reply, a follow-up, a bounce"
+            },
+            {
+              "value": "job.updated",
+              "description": "A scheduled job was changed"
+            },
+            {
+              "value": "job.done",
+              "description": "A scheduled job ran"
+            },
+            {
+              "value": "job.skipped",
+              "description": "A scheduled job was skipped"
+            },
+            {
+              "value": "job.failed",
+              "description": "A scheduled job failed"
+            },
+            {
+              "value": "case.updated",
+              "description": "A case was created or changed"
+            },
+            {
+              "value": "clock",
+              "description": "The simulated clock changed speed, froze or moved"
+            },
+            {
+              "value": "pace",
+              "description": "The pace changed"
+            },
+            {
+              "value": "faults.updated",
+              "description": "Fault rules changed"
+            },
+            {
+              "value": "junk.settings",
+              "description": "Junk settings changed"
+            },
+            {
+              "value": "network.updated",
+              "description": "Network settings changed"
+            },
+            {
+              "value": "retention.pruned",
+              "description": "Old mail and events were deleted"
+            },
+            {
+              "value": "webhook.failed",
+              "description": "A webhook could not be delivered"
+            },
+            {
+              "value": "writer.fallback",
+              "description": "A reply was written from a template because the AI was unavailable"
+            },
+            {
+              "value": "ai.mode",
+              "description": "The universe's AI was switched on or off"
+            },
+            {
+              "value": "auth.ok",
+              "description": "A sign-in succeeded (SMTP, IMAP or dashboard)"
+            },
+            {
+              "value": "auth.failed",
+              "description": "A sign-in failed"
+            },
+            {
+              "value": "check.received",
+              "description": "The deliverability checker received a test email"
+            },
+            {
+              "value": "check.done",
+              "description": "The deliverability checker finished a report"
+            },
+            {
+              "value": "check.refused",
+              "description": "The deliverability checker refused a message"
+            }
+          ]
+        },
+        "timeout": {
+          "type": "duration",
+          "description": "Seconds at most 300",
+          "default": "30s",
+          "max": 300
+        }
+      }
+    },
+    "webhooks": {
+      "endpoints": [
+        "GET /api/webhooks",
+        "PUT /api/webhooks"
+      ],
+      "description": "Events POSTed to your URLs, signed with X-Simmail-Signature.",
+      "feature": "webhooks",
+      "fields": {
+        "events": {
+          "type": "enum[]",
+          "description": "Event kinds, or prefixes such as \"persona.*\"",
+          "values": [
+            {
+              "value": "mail.delivered",
+              "description": "Mail your app sent was delivered to its recipients"
+            },
+            {
+              "value": "mail.retried",
+              "description": "A message was handed to people again (POST /api/retry)"
+            },
+            {
+              "value": "mail.deleted",
+              "description": "Mail was deleted (DELETE /api/messages)"
+            },
+            {
+              "value": "persona.received",
+              "description": "A person received an email and read it"
+            },
+            {
+              "value": "persona.sent",
+              "description": "A person sent an email: a reply, a follow-up or a forward"
+            },
+            {
+              "value": "persona.ignored",
+              "description": "A person decided not to answer (or their AI is off)"
+            },
+            {
+              "value": "persona.batched",
+              "description": "A person will answer several emails together"
+            },
+            {
+              "value": "persona.junked",
+              "description": "A person's provider filed your email as spam; they never saw it",
+              "feature": "junk_consequences"
+            },
+            {
+              "value": "persona.rescued",
+              "description": "An email was moved from Junk to a person's inbox"
+            },
+            {
+              "value": "persona.bounced",
+              "description": "An address bounced (dead, full, blocked)"
+            },
+            {
+              "value": "persona.promised",
+              "description": "A person promised to do something",
+              "feature": "living_world"
+            },
+            {
+              "value": "persona.waiting",
+              "description": "A person is waiting on something you promised",
+              "feature": "living_world"
+            },
+            {
+              "value": "persona.created",
+              "description": "A person was added"
+            },
+            {
+              "value": "persona.updated",
+              "description": "A person was changed"
+            },
+            {
+              "value": "persona.memory",
+              "description": "Something was added to a person's memory"
+            },
+            {
+              "value": "link.opened",
+              "description": "A person clicked a link in an email",
+              "feature": "living_world"
+            },
+            {
+              "value": "link.skipped",
+              "description": "A person chose not to open a link",
+              "feature": "living_world"
+            },
+            {
+              "value": "link.failed",
+              "description": "A person clicked a link and it failed",
+              "feature": "living_world"
+            },
+            {
+              "value": "link.sender",
+              "description": "A person looked up a sender's website",
+              "feature": "living_world"
+            },
+            {
+              "value": "inspect.scored",
+              "description": "An email your app sent was inspected and scored"
+            },
+            {
+              "value": "inspect.links",
+              "description": "The links of an email your app sent were checked"
+            },
+            {
+              "value": "world.mail",
+              "description": "Mail arrived on its own from the World"
+            },
+            {
+              "value": "world.updated",
+              "description": "The World was changed"
+            },
+            {
+              "value": "job.scheduled",
+              "description": "Something was scheduled: a reply, a follow-up, a bounce"
+            },
+            {
+              "value": "job.updated",
+              "description": "A scheduled job was changed"
+            },
+            {
+              "value": "job.done",
+              "description": "A scheduled job ran"
+            },
+            {
+              "value": "job.skipped",
+              "description": "A scheduled job was skipped"
+            },
+            {
+              "value": "job.failed",
+              "description": "A scheduled job failed"
+            },
+            {
+              "value": "case.updated",
+              "description": "A case was created or changed"
+            },
+            {
+              "value": "clock",
+              "description": "The simulated clock changed speed, froze or moved"
+            },
+            {
+              "value": "pace",
+              "description": "The pace changed"
+            },
+            {
+              "value": "faults.updated",
+              "description": "Fault rules changed"
+            },
+            {
+              "value": "junk.settings",
+              "description": "Junk settings changed"
+            },
+            {
+              "value": "network.updated",
+              "description": "Network settings changed"
+            },
+            {
+              "value": "retention.pruned",
+              "description": "Old mail and events were deleted"
+            },
+            {
+              "value": "webhook.failed",
+              "description": "A webhook could not be delivered"
+            },
+            {
+              "value": "writer.fallback",
+              "description": "A reply was written from a template because the AI was unavailable"
+            },
+            {
+              "value": "ai.mode",
+              "description": "The universe's AI was switched on or off"
+            },
+            {
+              "value": "auth.ok",
+              "description": "A sign-in succeeded (SMTP, IMAP or dashboard)"
+            },
+            {
+              "value": "auth.failed",
+              "description": "A sign-in failed"
+            },
+            {
+              "value": "check.received",
+              "description": "The deliverability checker received a test email"
+            },
+            {
+              "value": "check.done",
+              "description": "The deliverability checker finished a report"
+            },
+            {
+              "value": "check.refused",
+              "description": "The deliverability checker refused a message"
+            }
+          ],
+          "unset": "every event"
+        }
+      }
+    },
+    "world": {
+      "endpoints": [
+        "GET /api/world",
+        "PUT /api/world",
+        "POST /api/world/streams/{id}/send"
+      ],
+      "description": "Mail that arrives on its own.",
+      "fields": {
+        "streams.business_hours": {
+          "type": "boolean"
+        },
+        "streams.enabled": {
+          "type": "boolean"
+        },
+        "streams.kind": {
+          "type": "enum",
+          "description": "What the stream's emails are",
+          "values": [
+            {
+              "value": "lead",
+              "label": "Lead"
+            },
+            {
+              "value": "support",
+              "label": "Support"
+            },
+            {
+              "value": "vendor",
+              "label": "Vendor"
+            },
+            {
+              "value": "partner",
+              "label": "Partner"
+            },
+            {
+              "value": "customer",
+              "label": "Customer"
+            },
+            {
+              "value": "newsletter",
+              "label": "Newsletter"
+            },
+            {
+              "value": "spam",
+              "label": "Spam"
+            },
+            {
+              "value": "phishing",
+              "label": "Phishing"
+            },
+            {
+              "value": "custom",
+              "label": "Custom"
+            }
+          ]
+        },
+        "streams.new_people": {
+          "type": "number",
+          "description": "Share from people never heard from",
+          "min": 0,
+          "max": 1
+        },
+        "streams.per_day": {
+          "type": "number",
+          "description": "On average, in simulated days",
+          "min": 0
+        }
+      }
+    }
+  },
+  "version": 1
+}

@@ -1,7 +1,7 @@
 {
   "name": "@plexuslabs/simmail",
   "version": "0.1.0",
-  "description": "Client for simmail: wait for the email your app sends, pull out codes and links, and get replies from simulated people.",
+  "description": "The official simmail client: wait for the email your app sends, pull out codes and links, get replies from simulated people, and drive the whole simulated email world.",
   "type": "module",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -11,12 +11,33 @@
       "default": "./index.js"
     }
   },
-  "files": ["index.js", "index.d.ts", "README.md", "CHANGELOG.md", "LICENSE"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "index.js",
+    "models.js",
+    "enums.js",
+    "enums.d.ts",
+    "index.d.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "node --test test/*.test.js"
   },
-  "keywords": ["email", "testing", "smtp", "e2e", "playwright", "simmail", "email-testing", "magic-link", "otp"],
+  "keywords": [
+    "email",
+    "testing",
+    "smtp",
+    "e2e",
+    "playwright",
+    "simmail",
+    "email-testing",
+    "magic-link",
+    "otp"
+  ],
   "license": "Apache-2.0",
   "author": "Plexus Labs",
   "homepage": "https://www.simmail.dev/docs/",
@@ -25,6 +46,11 @@
     "url": "git+https://github.com/PlexusLabsDev/simmail-sdks.git",
     "directory": "js"
   },
-  "bugs": { "url": "https://github.com/PlexusLabsDev/simmail-sdks/issues" },
-  "publishConfig": { "access": "public", "provenance": true }
+  "bugs": {
+    "url": "https://github.com/PlexusLabsDev/simmail-sdks/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }
